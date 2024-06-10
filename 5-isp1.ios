@@ -1,14 +1,14 @@
-Current configuration : 2354 bytes
+Current configuration : 2419 bytes
 !
-! Last configuration change at 18:56:08 MST Sun Jun 9 2024 by lab
-! NVRAM config last updated at 18:56:09 MST Sun Jun 9 2024 by lab
+! Last configuration change at 19:16:07 MST Sun Jun 9 2024 by lab
+! NVRAM config last updated at 19:16:10 MST Sun Jun 9 2024 by lab
 !
 version 15.7
 service timestamps debug datetime msec localtime show-timezone year
 service timestamps log datetime msec localtime show-timezone year
 no service password-encryption
 !
-hostname management
+hostname ISP1
 !
 boot-start-marker
 boot-end-marker
@@ -44,14 +44,15 @@ mmi snmp-timeout 180
 
 
 !
+ip vrf management
+!
 !
 !
 !
 ip domain lookup source-interface Ethernet0/0
 ip domain name pnjnet.local
-ip name-server 192.168.1.10
 ip name-server 208.67.222.222
-ip name-server 4.2.2.2
+ip name-server 192.168.1.1
 ip cef
 login on-failure log
 login on-success log
@@ -72,11 +73,12 @@ archive
   logging enable
   logging size 200
   notify syslog contenttype plaintext
-username cisco privilege 15 password 0 cisco
 username lab privilege 15 password 0 lab
+username cisco privilege 15 password 0 cisco
 !
 redundancy
 !
+lldp run
 !
 !
 !
@@ -92,16 +94,17 @@ redundancy
 !
 !
 interface Loopback0
- ip address 192.0.2.2 255.255.255.255
+ ip address 192.0.2.5 255.255.255.255
 !
 interface Ethernet0/0
- ip address 192.168.1.32 255.255.255.0
+ ip address 192.168.1.35 255.255.255.0
  ip nat outside
  ip virtual-reassembly in
  duplex auto
 !
 interface Ethernet0/1
- ip address 172.31.255.2 255.255.255.0
+ description fw1 eth1/1
+ ip address 100.64.0.1 255.255.255.252
  ip nat inside
  ip virtual-reassembly in
  duplex auto
@@ -112,19 +115,22 @@ interface Ethernet0/2
  duplex auto
 !
 interface Ethernet0/3
- no ip address
- shutdown
+ ip vrf forwarding management
+ ip address 172.31.255.5 255.255.255.0
  duplex auto
+!
+router bgp 65001
+ bgp log-neighbor-changes
+ network 0.0.0.0
+ neighbor 100.64.0.2 remote-as 65011
+ neighbor 100.64.0.2 soft-reconfiguration inbound
 !
 ip forward-protocol nd
 !
 !
 no ip http server
 no ip http secure-server
-ip nat pool outside-hosts 172.31.255.250 172.31.255.254 prefix-length 24
 ip nat inside source list 1 interface Ethernet0/0 overload
-ip nat inside source static 172.31.255.3 192.168.1.33
-ip nat inside source static 172.31.255.4 192.168.1.34
 ip route 0.0.0.0 0.0.0.0 192.168.1.1
 ip ssh version 2
 !
@@ -133,10 +139,9 @@ ipv6 ioam timestamp
 snmp-server community company.read RO
 snmp-server ifindex persist
 snmp-server location Corp
-snmp-server chassis-id management
+snmp-server chassis-id ISP1
 !
-access-list 1 permit 172.31.255.0 0.0.0.255
-access-list 2 permit 192.168.1.113
+access-list 1 permit 100.64.0.0 0.0.0.255
 !
 control-plane
 !
@@ -148,17 +153,20 @@ control-plane
 !
 !
 line con 0
- exec-timeout 60 0
+ session-timeout 30
+ exec-timeout 15 0
+ privilege level 15
  logging synchronous
  login local
 line aux 0
 line vty 0 4
- exec-timeout 480 0
+ exec-timeout 720 0
+ logging synchronous
  login local
  transport preferred none
  transport input telnet ssh
+ escape-character BREAK
 !
-ntp master 5
 ntp server time.google.com
 !
 end
