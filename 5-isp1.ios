@@ -1,7 +1,6 @@
-Current configuration : 2419 bytes
+Current configuration : 2354 bytes
 !
-! Last configuration change at 19:16:07 MST Sun Jun 9 2024 by lab
-! NVRAM config last updated at 19:16:10 MST Sun Jun 9 2024 by lab
+! Last configuration change at 20:41:53 MST Thu Jun 13 2024 by lab
 !
 version 15.7
 service timestamps debug datetime msec localtime show-timezone year
@@ -103,7 +102,7 @@ interface Ethernet0/0
  duplex auto
 !
 interface Ethernet0/1
- description fw1 eth1/1
+ description edge1 e0/0
  ip address 100.64.0.1 255.255.255.252
  ip nat inside
  ip virtual-reassembly in
